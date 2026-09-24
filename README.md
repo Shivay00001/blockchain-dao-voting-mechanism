@@ -1,50 +1,36 @@
-# Blockchain Dao Voting Mechanism
+# DAO Voting Mechanism — off-chain prototype
 
-An enterprise-grade solution engineered for high performance.
+**What it does:** Member registry with token balances, proposal creation with
+configurable quorum and approval-threshold rules, token-weighted yes/no/abstain
+ballots (one vote per member per proposal), immutable vote receipts in SQLite,
+and close/tally producing a pass/fail result with full weight accounting.
 
-![Language](https://img.shields.io/badge/Language-HTML-blue)
-![Status](https://img.shields.io/badge/Status-Active-success)
-![License](https://img.shields.io/badge/License-MIT-green)
+**Honest label:** This is an **off-chain prototype**. No blockchain, no smart
+contracts, no on-chain interaction. State lives in `dao.db` (SQLite).
 
-## 🚀 Overview
+## Run
 
-Welcome to the **Blockchain Dao Voting Mechanism** repository. This project is built to deliver a robust and scalable solution tailored to modern development standards.
+```bash
+pip install -r requirements.txt
+uvicorn main:app --port 8000
+# DAO_DB=/path/to/db.sqlite uvicorn main:app   # custom DB location
+```
 
-## ✨ Features
+## Lifecycle
 
-- **High Performance:** Optimized for speed and efficiency.
-- **Scalable Architecture:** Designed to grow with your needs.
-- **Clean Codebase:** Follows best practices and industry standards.
-- **Secure by Default:** Engineered with security in mind.
+```bash
+curl -X POST localhost:8000/members -H 'Content-Type: application/json' \
+  -d '{"name":"alice","tokens":60}'
+curl -X POST localhost:8000/proposals -H 'Content-Type: application/json' \
+  -d '{"title":"Fund marketing","quorum_pct":25,"threshold_pct":50}'
+curl -X POST localhost:8000/proposals/1/vote -H 'Content-Type: application/json' \
+  -d '{"member_id":1,"choice":"yes"}'
+curl -X POST localhost:8000/proposals/1/close
+curl localhost:8000/proposals/1/result
+```
 
-## 🛠️ Prerequisites
+## Tests
 
-Ensure you have the following installed in your environment before proceeding:
-- Appropriate runtime/compiler for `HTML`
-- Standard development tools
-
-## 📦 Installation
-
-Follow standard installation steps for `HTML` to set up the project locally:
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Shivay00001/blockchain-dao-voting-mechanism.git
-   ```
-2. Navigate to the project directory:
-   ```bash
-   cd blockchain-dao-voting-mechanism
-   ```
-3. Install dependencies according to the standard `HTML` ecosystem.
-
-## 💻 Usage
-
-Run the project using standard execution commands for `HTML`. Ensure all environment variables and configurations are set prior to execution.
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
-
-## 📝 License
-
-This project is licensed under standard terms.
+```bash
+pytest -q   # full lifecycle: pass, quorum-fail, threshold-fail cases
+```
